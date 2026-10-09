@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tính hỗ trợ lao động – Tuyển than Hòn Gai</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            max-width: 500px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin: auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h2 {
+            color: #0056b3;
+            text-align: center;
+            font-size: 1.4em;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+        input[readonly] {
+            background-color: #eee;
+            cursor: not-allowed;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #e9f7ef;
+            display: none;
+        }
+        .result p {
+            margin: 8px 0;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 5px;
+        }
+        .total {
+            font-weight: bold;
+            color: #d9534f;
+            font-size: 1.2em;
+            border-bottom: none !important;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.8em;
+            color: #777;
+            margin-top: 20px;
+        }
+        @media (max-width: 480px) {
+            .container { padding: 15px; }
+            h2 { font-size: 1.2em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 style="margin-bottom:6px">TÍNH HỖ TRỢ LAO ĐỘNG</h2>
+        <p style="text-align:center;color:#777;margin:0 0 20px">Dùng để tham khảo</p>
+        
+        <div class="form-group">
+            <label for="fullname">Họ và tên</label>
+            <input type="text" id="fullname">
+        </div>
+        
+        <div class="form-group">
+            <label for="gender">Giới tính</label>
+            <select id="gender">
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="typeretired">Hình thức nghỉ việc</label>
+            <select id="typeretired" onchange="toggleInputs()">
+                <option value="termination">Chấm dứt HĐLĐ</option>
+                <option value="pension">Nghỉ hưu trước tuổi</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="category">Diện sắp xếp lao động</label>
+            <select id="category" onchange="updateFactor()">
+                <option value="absolute">Dôi dư – giảm tuyệt đối, không tuyển thay thế</option>
+                <option value="innovation">Đổi mới cơ cấu, chất lượng – không giảm tuyệt đối</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="factor">Số tháng lương hỗ trợ / năm công tác</label>
+            <input type="number" id="factor" value="1.5" readonly>
+        </div>
+        
+        <div id="divyearswork">
+            <div class="form-group">
+                <label for="yearswork">Số năm tròn công tác có đóng BHXH bắt buộc</label>
+                <input type="number" id="yearswork" min="0" step="1">
+            </div>
+            <div class="form-group">
+                <label for="yearscompany">Số năm làm việc tại doanh nghiệp TKV trong khoảng 01/01/2009–31/12/2025</label>
+                <input type="number" id="yearscompany" min="0" max="17" step="any">
+            </div>
+            <div class="form-group">
+                <label for="benefittype">Chế độ trợ cấp đủ điều kiện hưởng</label>
+                <select id="benefittype" onchange="toggleBenefitInputs()">
+                    <option value="">Chọn chế độ</option>
+                    <option value="loss">Trợ cấp mất việc làm</option>
+                    <option value="quit">Trợ cấp thôi việc</option>
+                    <option value="none">Không thuộc diện hưởng trợ cấp</option>
+                </select>
+            </div>
+            <div id="benefitinputs" style="display:none">
+                <label>Thời gian tính trợ cấp sau khi trừ BHTN và thời gian đã nhận trợ cấp</label>
+                <div style="display:flex;gap:12px;margin-bottom:15px">
+                    <div style="flex:1;min-width:0"><label for="benefityears">Số năm tròn</label><input type="number" id="benefityears" min="0" step="1"></div>
+                    <div style="flex:1;min-width:0"><label for="benefitmonths">Số tháng lẻ</label><input type="number" id="benefitmonths" min="0" max="11" step="1" value="0"></div>
+                </div>
+                <div class="form-group">
+                    <label for="salary">Lương bình quân 6 tháng liền kề theo HĐLĐ (đồng/tháng)</label>
+                    <input type="number" id="salary" min="1" step="1">
+                </div>
+            </div>
+        </div>
+        <div id="divyearsearly" style="display:none">
+            <label>Thời gian nghỉ hưu trước tuổi</label>
+            <div style="display:flex;gap:12px;margin-bottom:12px">
+                <div style="flex:1;min-width:0"><label for="earlyyears">Số năm tròn</label><input type="number" id="earlyyears" min="0" step="1"></div>
+                <div style="flex:1;min-width:0"><label for="earlymonths">Số tháng lẻ</label><input type="number" id="earlymonths" min="0" max="11" step="1" value="0"></div>
+            </div>
+        </div>
+        <button onclick="calculate()">TÍNH HỖ TRỢ</button>
+        <p id="error" role="alert" style="color:#b42318;line-height:1.5"></p>
+        <div id="result" class="result">
+            <p id="restkv"></p>
+            <p id="resbenefit"></p>
+            <p id="rescompany"></p>
+            <p id="resunion"></p>
+            <p class="total" id="restotal"></p>
+            <p style="color:#9a3412;font-size:0.9em;line-height:1.5;border-bottom:none"><strong>Lưu ý: Số tiền tính toán chỉ có giá trị tham khảo.</strong> Số tiền thực tế được chi trả căn cứ hồ sơ, điều kiện hưởng và quyết định phê duyệt của cấp có thẩm quyền.</p>
+        </div>
+        
+        <div class="footer">
+            Công ty Tuyển than Hòn Gai - Vinacomin<br>
+            Phòng Tổ chức Lao động – Tiền lương
+        </div>
+    </div>
+
+    <script>
+        const MINWAGE = 3450000;
+        const money = value => Math.round(value).toLocaleString('vi-VN') + ' đồng';
+        function clearResult() {
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('error').textContent = '';
+        }
+        function updateFactor() {
+            document.getElementById('factor').value = document.getElementById('category').value === 'absolute' ? 1.5 : 0.75;
+            clearResult();
+        }
+        function toggleInputs() {
+            const pension = document.getElementById('typeretired').value === 'pension';
+            document.getElementById('divyearswork').style.display = pension ? 'none' : 'block';
+            document.getElementById('divyearsearly').style.display = pension ? 'block' : 'none';
+            document.getElementById('factor').parentElement.style.display = pension ? 'none' : 'block';
+            clearResult();
+        }
+        function toggleBenefitInputs() {
+            const type = document.getElementById('benefittype').value;
+            document.getElementById('benefitinputs').style.display = type === 'loss' || type === 'quit' ? 'block' : 'none';
+            clearResult();
+        }
+        function readNumber(id, label, max = Infinity, integer = false) {
+            const raw = document.getElementById(id).value.trim();
+            const value = Number(raw);
+            if (raw === '' || !Number.isFinite(value) || value < 0 || value > max || (integer && !Number.isInteger(value))) {
+                throw new Error(label + ': nhập số ' + (integer ? 'nguyên ' : '') + 'không âm' + (Number.isFinite(max) ? ', tối đa ' + max : '') + '.');
+            }
+            return value;
+        }
+        function pensionSupport(cat, years, months) {
+            const totalMonths = years * 12 + months;
+            if (totalMonths < 12) throw new Error('Nghỉ hưu trước tuổi dưới đủ 12 tháng không thuộc diện hỗ trợ theo QĐ 2299 và NQLT 6667.');
+            const schedule = cat === 'absolute' ? [0,12,27,42,57,72] : [0,6,13,20,27,34];
+            const base = schedule[Math.min(years, 5)];
+            const extra = years < 5 && months >= 6 ? (cat === 'absolute' ? 7.5 : 3.5) : 0;
+            return {base, extra, tkv: (base + extra) * MINWAGE,
+                company: Math.min(years, 5) * 2000000,
+                review: totalMonths > 60};
+        }
+        // Thời gian trợ cấp là thời gian đã được xác định sau các khoản loại trừ.
+        // Loại trợ cấp được chọn riêng, không suy ra từ diện hỗ trợ TKV.
+        function terminationSupport(cat, years, companyYears, benefitType, benefitYears, benefitMonths, salary) {
+            const factor = cat === 'absolute' ? 1.5 : 0.75;
+            const gross = Math.round(factor * MINWAGE * years);
+            const roundedYears = benefitYears + (benefitMonths === 0 ? 0 : benefitMonths <= 6 ? 0.5 : 1);
+            let benefit = 0;
+            if (benefitType === 'loss') benefit = Math.round(Math.max(roundedYears, 2) * salary);
+            else if (benefitType === 'quit') benefit = Math.round(0.5 * roundedYears * salary);
+            const supplement = Math.max(0, gross - benefit);
+            return {gross, benefit, supplement, combined: benefit + supplement,
+                company: Math.round(0.35 * MINWAGE * companyYears)};
+        }
+        function calculate() {
+            clearResult();
+            try {
+                const pension = document.getElementById('typeretired').value === 'pension';
+                const cat = document.getElementById('category').value;
+                let tkv = 0, company = 0, benefit = 0;
+                if (pension) {
+                    const years = readNumber('earlyyears', 'Số năm tròn', Infinity, true);
+                    const months = readNumber('earlymonths', 'Số tháng lẻ', 11, true);
+                    const support = pensionSupport(cat, years, months);
+                    tkv = support.tkv; company = support.company;
+                } else {
+                    const years = readNumber('yearswork', 'Số năm tròn đóng BHXH', Infinity, true);
+                    const companyYears = readNumber('yearscompany', 'Số năm tính hỗ trợ Công ty', 17);
+                    const benefitType = document.getElementById('benefittype').value;
+                    if (!['loss', 'quit', 'none'].includes(benefitType)) throw new Error('Chọn chế độ trợ cấp đủ điều kiện hưởng.');
+                    let benefitYears = 0, benefitMonths = 0, salary = 0;
+                    if (benefitType !== 'none') {
+                        benefitYears = readNumber('benefityears', 'Số năm tính trợ cấp', Infinity, true);
+                        benefitMonths = readNumber('benefitmonths', 'Số tháng lẻ tính trợ cấp', 11, true);
+                        salary = readNumber('salary', 'Lương bình quân 6 tháng', Infinity, true);
+                        if (salary <= 0) throw new Error('Lương bình quân 6 tháng phải lớn hơn 0.');
+                    }
+                    const support = terminationSupport(cat, years, companyYears, benefitType, benefitYears, benefitMonths, salary);
+                    tkv = support.supplement;
+                    benefit = support.benefit;
+                    company = support.company;
+                }
+                const union = 1000000;
+                document.getElementById('restkv').textContent = 'Hỗ trợ của TKV: ' + money(tkv);
+                document.getElementById('resbenefit').textContent = 'Trợ cấp mất việc/ thôi việc: ' + money(benefit);
+                document.getElementById('resbenefit').style.display = pension ? 'none' : 'block';
+                document.getElementById('rescompany').textContent = 'Hỗ trợ từ Quỹ phúc lợi Công ty: ' + money(company);
+                document.getElementById('resunion').textContent = 'Hỗ trợ Công đoàn Công ty: ' + money(union);
+                document.getElementById('restotal').textContent = 'TỔNG DỰ KIẾN TRƯỚC THUẾ: ' + money(tkv + benefit + company + union);
+                document.getElementById('result').style.display = 'block';
+            } catch (error) {
+                document.getElementById('error').textContent = error.message;
+            }
+        }
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', clearResult);
+            el.addEventListener('change', clearResult);
+        });
+        updateFactor();
+        toggleInputs();
+        toggleBenefitInputs();
+    </script>
+</body>
+</html>
